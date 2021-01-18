@@ -1,0 +1,37 @@
+version: '3.7'
+
+volumes:
+  db-store:
+  php-fpm-socket:
+
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: ./docker/app/Dockerfile
+      target: development
+    volumes:
+      - php-fpm-socket:/var/run/php-fpm
+      - ./docker/app/bash/.bash_history:/root/.bash_history
+      - ./src:/work/backend
+    environment:
+      - APP_ENV=local
+  web:
+    build: ./docker/web
+    ports:
+      - 8888:80
+    volumes:
+      - ./src:/work/backend
+      - php-fpm-socket:/var/run/php-fpm
+  db:
+    build: ./docker/db
+    volumes:
+      - db-store:/var/lib/mysql
+    ports:
+      - 33306:3306
+    environment:
+      - TZ=UTC
+      - MYSQL_PASSWORD=secret
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=local
+      - MYSQL_USER=local_user
